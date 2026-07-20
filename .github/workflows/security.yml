@@ -59,7 +59,7 @@ jobs:
         run: npm install --package-lock-only && npm audit --audit-level=high
       - name: Trivy filesystem scan
         continue-on-error: true
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@master
         with:
           scan-type: fs
           scan-ref: app
@@ -128,3 +128,4 @@ jobs:
           target: http://localhost:3000
           rules_file_name: policies/zap-rules.tsv
           cmd_options: '-a'
+          allow_issue_writing: false
