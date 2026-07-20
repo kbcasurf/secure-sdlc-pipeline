@@ -4,9 +4,7 @@
 > scanning, SBOM generation and DAST around a small, **intentionally vulnerable**
 > application — provided in **two portable variants**: GitHub Actions and GitLab CI.
 
-<!-- Once pushed, replace OWNER/REPO to enable the live badge:
 [![Secure SDLC Pipeline](https://github.com/kbcasurf/secure-sdlc-pipeline/actions/workflows/security.yml/badge.svg)](https://github.com/kbcasurf/secure-sdlc-pipeline/actions/workflows/security.yml)
--->
 
 ---
 
