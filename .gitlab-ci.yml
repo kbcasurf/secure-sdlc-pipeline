@@ -36,6 +36,18 @@ trivy_fs:
   script:
     - trivy fs --exit-code 0 --severity HIGH,CRITICAL app/
 
+# --- IaC misconfig scan (Trivy config) ---------------------------------------
+# Complements the managed SAST-IaC template: Trivy config scans Dockerfile and
+# docker-compose.yml for misconfigurations (README: IaC = Checkov + Trivy).
+trivy_config:
+  stage: test
+  image:
+    name: aquasec/trivy:latest
+    entrypoint: [""]
+  allow_failure: true            # demo: report without blocking (see policies/)
+  script:
+    - trivy config --exit-code 0 --severity HIGH,CRITICAL .
+
 # --- DAST (OWASP ZAP baseline) -----------------------------------------------
 dast_zap:
   stage: dast
