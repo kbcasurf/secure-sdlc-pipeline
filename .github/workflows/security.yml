@@ -4,6 +4,11 @@ name: Secure SDLC Pipeline
 # `continue-on-error: true` so this demo stays green while still publishing
 # findings (Security tab + artifacts). Flip a step to blocking by removing that
 # line — that single change turns the stage into a hard quality gate.
+#
+# Every action is pinned to an immutable commit SHA with the human-readable
+# version in a trailing comment — supply-chain hardening that satisfies the
+# OpenSSF Scorecard "Pinned-Dependencies" check. Bump deliberately, never with a
+# moving tag/branch.
 
 on:
   push:
@@ -21,13 +26,13 @@ jobs:
     name: SAST · Semgrep
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Run Semgrep
         continue-on-error: true
         run: |
           pip install semgrep
           semgrep scan --config auto --sarif --output semgrep.sarif app/
-      - uses: github/codeql-action/upload-sarif@v3
+      - uses: github/codeql-action/upload-sarif@e58424170fb0262c8d7ed60a2e84b9bffe205c67 # v4 (codeql-bundle-v2.26.1)
         if: always()
         with:
           sarif_file: semgrep.sarif
@@ -38,12 +43,12 @@ jobs:
     name: Secrets · Gitleaks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
       - name: Run Gitleaks
         continue-on-error: true
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
           GITLEAKS_CONFIG: policies/gitleaks.toml
 
@@ -52,7 +57,7 @@ jobs:
     name: SCA · Trivy + npm audit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: npm audit
         continue-on-error: true
         working-directory: app
@@ -65,7 +70,7 @@ jobs:
           scan-ref: app
           format: sarif
           output: trivy-fs.sarif
-      - uses: github/codeql-action/upload-sarif@v3
+      - uses: github/codeql-action/upload-sarif@e58424170fb0262c8d7ed60a2e84b9bffe205c67 # v4 (codeql-bundle-v2.26.1)
         if: always()
         with:
           sarif_file: trivy-fs.sarif
@@ -76,15 +81,15 @@ jobs:
     name: IaC · Checkov
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Run Checkov
         continue-on-error: true
-        uses: bridgecrewio/checkov-action@v12
+        uses: bridgecrewio/checkov-action@99bb2caf247dfd9f03cf984373bc6043d4e32ebf # v12.1347.0
         with:
           directory: .
           output_format: sarif
           output_file_path: checkov.sarif
-      - uses: github/codeql-action/upload-sarif@v3
+      - uses: github/codeql-action/upload-sarif@e58424170fb0262c8d7ed60a2e84b9bffe205c67 # v4 (codeql-bundle-v2.26.1)
         if: always()
         with:
           sarif_file: checkov.sarif
@@ -95,14 +100,14 @@ jobs:
     name: SBOM · Syft (CycloneDX)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Generate SBOM
-        uses: anchore/sbom-action@v0
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
           path: ./app
           format: cyclonedx-json
           output-file: sbom.cyclonedx.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: sbom
           path: sbom.cyclonedx.json
@@ -113,7 +118,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [sast, sca]   # scan the code before spending time on the running app
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Start the demo app
         run: docker compose up --build -d
       - name: Wait for app to be ready
@@ -123,7 +128,7 @@ jobs:
           done
       - name: ZAP baseline scan
         continue-on-error: true
-        uses: zaproxy/action-baseline@v0.12.0
+        uses: zaproxy/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25 # v0.15.0
         with:
           target: http://localhost:3000
           rules_file_name: policies/zap-rules.tsv
