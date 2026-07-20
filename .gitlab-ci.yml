@@ -1,0 +1,57 @@
+# GitLab CI variant of the same secure SDLC pipeline. Mirrors the GitHub Actions
+# workflow: SAST, secrets, SCA, IaC, SBOM and DAST. GitLab ships several of these
+# as managed templates (they populate the Security Dashboard automatically); the
+# custom jobs cover the rest so both platforms run an equivalent control set.
+
+stages:
+  - test
+  - dast
+
+include:
+  - template: Jobs/SAST.gitlab-ci.yml                     # Semgrep-based SAST
+  - template: Jobs/Secret-Detection.gitlab-ci.yml         # secret scanning
+  - template: Jobs/Dependency-Scanning.gitlab-ci.yml      # SCA
+  - template: Security/SAST-IaC.gitlab-ci.yml             # IaC scanning
+
+# --- SBOM (Syft, CycloneDX) --------------------------------------------------
+sbom:
+  stage: test
+  image:
+    name: anchore/syft:latest
+    entrypoint: [""]
+  script:
+    - syft dir:app -o cyclonedx-json > sbom.cyclonedx.json
+  artifacts:
+    paths:
+      - sbom.cyclonedx.json
+    expire_in: 1 week
+
+# --- SCA fallback (Trivy) ----------------------------------------------------
+trivy_fs:
+  stage: test
+  image:
+    name: aquasec/trivy:latest
+    entrypoint: [""]
+  allow_failure: true            # demo: report without blocking (see policies/)
+  script:
+    - trivy fs --exit-code 0 --severity HIGH,CRITICAL app/
+
+# --- DAST (OWASP ZAP baseline) -----------------------------------------------
+dast_zap:
+  stage: dast
+  image: docker:24
+  services:
+    - docker:24-dind
+  allow_failure: true            # demo: report without blocking (see policies/)
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+  script:
+    - docker compose up --build -d
+    - |
+      for i in $(seq 1 30); do
+        docker run --rm --network host curlimages/curl -sf http://localhost:3000/health && break || sleep 2
+      done
+    - docker run --rm --network host -v "$PWD/policies:/zap/policies:ro"
+        ghcr.io/zaproxy/zaproxy:stable
+        zap-baseline.py -t http://localhost:3000 -c /zap/policies/zap-rules.tsv || true

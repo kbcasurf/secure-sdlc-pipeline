@@ -1,0 +1,16 @@
+# Gitleaks configuration for the secret-scanning gate.
+# Extends the upstream default ruleset and adds a repo-specific allowlist so the
+# scanner still demonstrates a real detection (VULN-01) while not choking on
+# documented example values elsewhere.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Paths that legitimately contain example/placeholder values"
+paths = [
+  '''docs/findings-walkthrough.md''',   # documents the planted secret on purpose
+  '''app/README.md''',
+]
+# NOTE: app/src/server.js is intentionally NOT allowlisted — VULN-01 must fire
+# there to prove the gate works.

@@ -1,0 +1,15 @@
+{
+  "name": "vulnerable-demo-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Intentionally vulnerable demo service — target for the secure-sdlc-pipeline scanners. DO NOT DEPLOY.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "audit": "npm audit --audit-level=high"
+  },
+  "dependencies": {
+    "express": "4.17.1",
+    "lodash": "4.17.11"
+  }
+}

@@ -1,0 +1,12 @@
+# Runs the intentionally vulnerable demo app locally so you can exercise the
+# scanners (and DAST) by hand. Not a production topology.
+services:
+  app:
+    build: ./app
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+    read_only: true
+    security_opt:
+      - no-new-privileges:true

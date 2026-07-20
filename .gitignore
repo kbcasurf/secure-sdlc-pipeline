@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+app/node_modules/
+
+# Scanner outputs / artifacts
+*.sarif
+sbom*.json
+zap-report*
+report_*.html
+package-lock.json
+
+# Env / secrets (never commit real ones)
+.env
+.env.*
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
